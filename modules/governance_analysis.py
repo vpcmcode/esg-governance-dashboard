@@ -11,14 +11,14 @@ def governance_analysis_view(df: pd.DataFrame):
 
     st.subheader("Governance-Score vs. Rendite (Gruppiert nach Quintilen)")
 
-    # Auswahl der Jahre durch Nutzer:in
+    # Auswahl der Jahre
     years = sorted(df["Year"].dropna().unique())
     selected_years = st.multiselect("Analysejahre", options=years, default=years)
 
     # Daten nach gewählten Jahren filtern
     df_filtered = df[df["Year"].isin(selected_years)].copy()
 
-    # Prüfen, ob notwendige Spalten vorhanden sind
+    # Prüfung auf notewendige Spalten
     cols_needed = ["GovernancePillarScore", "AnnualReturnPct", "Company Name"]
     if not all(col in df_filtered.columns for col in cols_needed):
         st.error("Mindestens eine der benötigten Spalten fehlt.")

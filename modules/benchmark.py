@@ -5,37 +5,37 @@ import plotly.express as px
 
 def benchmark_governance(df: pd.DataFrame) -> None:
     """
-    Ermittelt den sektoralen Median der GovernancePillarScores für ein gewähltes Jahr
-    und berechnet für jedes Unternehmen die Abweichung vom jeweiligen Branchenwert.
-    Die Ergebnisse werden anschließend in einem interaktiven Boxplot dargestellt.
+    Zeigt, wie stark einzelne Unternehmen im Hinblick auf ihren GovernancePillarScore
+    vom Median ihrer Branche abweichen. Dafür wird ein Jahr ausgewählt, die Daten
+    gefiltert und die Abweichungen visualisiert.
     """
 
     st.header("Governance-Benchmarking nach Branche")
 
-    # Auswahl des Analysejahres durch den Nutzer
+    # Jahr auswählen
     jahre = df["Year"].dropna().unique()
     jahre.sort()
     selected_year = st.selectbox("Analysejahr auswählen", jahre)
 
-    # Filterung der Daten auf das gewählte Jahr
+    # Daten auf das gewählte Jahr filtern
     df_filtered = df[df["Year"] == selected_year].copy()
 
-    # Vorabprüfung: Sind alle benötigten Spalten vorhanden?
+    # Prüfen auf alle notwenidigen Spalten
     notwendige_spalten = ["Company Name", "Sektor", "GovernancePillarScore"]
     if not all(spalte in df_filtered.columns for spalte in notwendige_spalten):
-        st.error("Die für das Benchmarking erforderlichen Spalten fehlen im Datensatz.")
+        st.error("Es fehlen eine oder mehrere erforderliche Spalten im Datensatz.")
         return
 
-    # Berechnung des Median-Scores je Branche
+    # Median-Score je Branche berechnen
     mediane = df_filtered.groupby("Sektor")["GovernancePillarScore"].median()
 
-    # Differenz jedes Unternehmens zum Branchenmedian berechnen
+    # Abweichung zum Median berechnen
     df_filtered["GovernanceDeltaToMedian"] = df_filtered.apply(
         lambda row: row["GovernancePillarScore"] - mediane.get(row["Sektor"], np.nan),
         axis=1
     )
 
-    # Boxplot der Governance-Scores nach Sektor (inkl. Ausreißerpunkte)
+    # Boxplot erstellen
     fig = px.box(
         df_filtered,
         x="Sektor",
@@ -48,7 +48,7 @@ def benchmark_governance(df: pd.DataFrame) -> None:
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Optionale Tabellenansicht der berechneten Abweichungen
+    # Tabelle mit Abweichungen anzeigen
     with st.expander("Tabelle mit Score-Abweichungen einblenden"):
         st.dataframe(df_filtered[[
             "Company Name", "Sektor", "GovernancePillarScore", "GovernanceDeltaToMedian"

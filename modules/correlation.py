@@ -19,10 +19,10 @@ def correlation_analysis_view(df: pd.DataFrame):
     df["AnnualReturnPct"] = pd.to_numeric(df["AnnualReturnPct"], errors="coerce")
     df = df.dropna(subset=["GovernancePillarScore", "AnnualReturnPct"])
 
-    # Korrelationen je Unternehmen berechnen
+    # Korrelationen je Unternehmen
     result = []
     for name, group in df.groupby("Company Name"):
-        if len(group) >= 25:  # Mindestanzahl für halbwegs belastbare Aussage
+        if len(group) >= 25:  # Mindestanzahl für belastbare Aussage
             r, p = pearsonr(group["GovernancePillarScore"], group["AnnualReturnPct"])
             result.append({
                 "Unternehmen": name,
@@ -47,7 +47,10 @@ def correlation_analysis_view(df: pd.DataFrame):
     ]
 
     st.markdown("### Gefilterte Unternehmen (Tabelle)")
-    st.dataframe(df_corr_filtered.reset_index(drop=True))
+    df_show = df_corr_filtered.reset_index(drop=True)
+    df_show.index = df_show.index + 1
+    df_show.index.name = "Rang"
+    st.dataframe(df_show)
 
     # Top/Flop Unternehmen
     st.markdown("### Top- und Flop-Korrelationen")
@@ -84,7 +87,7 @@ def correlation_analysis_view(df: pd.DataFrame):
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
 
-    # Aggregierte Auswertung: Verteilung der Korrelationstypen
+    # Verteilung der Korrelationstypen
     st.markdown("### Aggregierte Auswertung")
     total = len(df_corr)
     pos = (df_corr["Korrelationskoeffizient"] > 0.2).sum()
@@ -103,6 +106,6 @@ def correlation_analysis_view(df: pd.DataFrame):
     elif neg > pos and neg > neutral:
         st.info("Die Daten deuten auf eine **überwiegend negative Korrelation** hin.")
     elif neutral > pos and neutral > neg:
-        st.info("Für den Großteil der Unternehmen ist **kein signifikanter Zusammenhang** erkennbar.")
+        st.info("Für den Großteil der Unternehmen ist **kein signifikanter Zusammenhang zwischen Governance-Score und Rendite** erkennbar.")
     else:
         st.info("Die Verteilung ist **ausgewogen**, es ergibt sich kein eindeutiger Trend.")

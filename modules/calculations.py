@@ -45,7 +45,7 @@ def calculate_log_returns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.merge(annual_log, on=["Company Name", "Year"], how="left")
     df["LogReturn"] = df["AnnualReturnPct"]
 
-    # Konsole/Debugging
+    # Debugging
     valid_obs = annual_log.dropna().shape[0]
     companies = annual_log["Company Name"].nunique()
     print(f"Renditen berechnet für {valid_obs} Unternehmensjahre ({companies} Unternehmen).")

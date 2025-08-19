@@ -1,3 +1,4 @@
+import math
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
@@ -11,7 +12,6 @@ def governance_timeseries(df: pd.DataFrame):
 
     st.subheader("Zeitliche Entwicklung von Governance-Score und Rendite")
 
-    # Auswahl des Modus: Einzelunternehmen oder Sektor
     modus = st.radio("Darstellungsmodus", ["Einzelunternehmen", "Sektortrends"], horizontal=True)
 
     if modus == "Einzelunternehmen":
@@ -33,6 +33,33 @@ def governance_timeseries(df: pd.DataFrame):
             st.warning("Keine gültigen Daten gefunden.")
             return
 
+        # Renditeachse: robust ableiten, dann an reale Extrema anpassen und runden
+        ret_all = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
+        if ret_all.notna().any():
+            q_low = float(ret_all.quantile(0.05))
+            q_high = float(ret_all.quantile(0.95))
+            pad = max(5.0, 0.1 * (q_high - q_low))
+
+            y2_min = float(min(q_low - pad, 0.0))
+            y2_max = float(max(q_high + pad, 0.0))
+
+            real_min = float(ret_all.min())
+            real_max = float(ret_all.max())
+            y2_min = min(y2_min, real_min)
+            y2_max = max(y2_max, real_max)
+        else:
+            y2_min, y2_max = -10.0, 10.0
+
+        step = 5.0
+        y2_min = math.floor(y2_min / step) * step
+        y2_max = math.ceil(y2_max / step) * step
+        if y2_max - y2_min < step:  # Sicherheitsabstand
+            y2_min -= step
+            y2_max += step
+
+        x_min = int(df_filtered["Year"].min())
+        x_max = int(df_filtered["Year"].max())
+
         fig = go.Figure()
         for firm in selected:
             data = df_filtered[df_filtered["Company Name"] == firm]
@@ -48,14 +75,31 @@ def governance_timeseries(df: pd.DataFrame):
                 y=data["AnnualReturnPct"],
                 name=f"{firm} – Jahresrendite (%)",
                 mode="lines+markers",
-                yaxis="y2"
+                yaxis="y2",
+                hovertemplate="Jahr %{x}<br>Rendite %{y:.1f} %<extra></extra>"
             ))
+
+        # Nullreferenz
+        fig.add_shape(
+            type="line",
+            x0=x_min, x1=x_max, y0=0, y1=0,
+            xref="x", yref="y2",
+            line=dict(width=1, dash="dot")
+        )
 
         fig.update_layout(
             title="Zeitliche Entwicklung: Governance & Rendite (Einzelunternehmen)",
             xaxis_title="Jahr",
             yaxis=dict(title="Governance-Score", side="left"),
-            yaxis2=dict(title="Rendite (%)", side="right", overlaying="y", showgrid=False),
+            yaxis2=dict(
+                title="Rendite (%)",
+                side="right",
+                overlaying="y",
+                showgrid=False,
+                range=[y2_min, y2_max],
+                zeroline=True,
+                ticksuffix=" %"
+            ),
             legend=dict(x=0.01, y=0.99),
             height=600
         )
@@ -72,7 +116,6 @@ def governance_timeseries(df: pd.DataFrame):
         df_sector = df[df["Sektor"].isin(selected_sectors)].copy()
         df_sector = df_sector.dropna(subset=["Year", "Sektor", "GovernancePillarScore", "AnnualReturnPct"])
 
-        # Gruppierung und Mittelwertbildung je Jahr und Sektor
         df_grouped = (
             df_sector.groupby(["Year", "Sektor"])
             .agg({
@@ -82,7 +125,6 @@ def governance_timeseries(df: pd.DataFrame):
             .reset_index()
         )
 
-        # Governance-Scores
         fig_score = px.line(
             df_grouped,
             x="Year",
@@ -93,7 +135,6 @@ def governance_timeseries(df: pd.DataFrame):
         fig_score.update_layout(yaxis_title="Governance-Score", height=400)
         st.plotly_chart(fig_score, use_container_width=True)
 
-        # Jahresrenditen
         fig_return = px.line(
             df_grouped,
             x="Year",
@@ -101,5 +142,5 @@ def governance_timeseries(df: pd.DataFrame):
             color="Sektor",
             title="Sektorale Entwicklung der Jahresrenditen"
         )
-        fig_return.update_layout(yaxis_title="Rendite (%)", height=400)
+        fig_return.update_layout(yaxis_title="Rendite (%)", height=400, yaxis=dict(ticksuffix=" %"))
         st.plotly_chart(fig_return, use_container_width=True)
