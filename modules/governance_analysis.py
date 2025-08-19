@@ -56,7 +56,7 @@ def governance_analysis_view(df: pd.DataFrame):
         .reset_index()
     )
 
-    # Rundung zur besseren Lesbarkeit
+    # Rundung
     stats["Durchschnitt"] = stats["Durchschnitt"].round(2)
     stats["Standardabweichung"] = stats["Standardabweichung"].round(4)
 

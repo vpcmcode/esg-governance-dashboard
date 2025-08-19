@@ -17,7 +17,7 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     df.dropna(subset=["Date"], inplace=True)
     df["Year"] = df["Date"].dt.year
 
-    # Preis und Governance-Scores konvertieren
+    # Aktienkurs und Governance-Scores konvertieren
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
     df["GovernancePillarScore"] = pd.to_numeric(df["GovernancePillarScore"], errors="coerce")
 

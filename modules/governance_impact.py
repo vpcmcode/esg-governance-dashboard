@@ -58,7 +58,7 @@ def governance_vs_rendite(df: pd.DataFrame):
         st.warning("Keine Daten für die aktuelle Auswahl.")
         return
 
-    # Achse: robust (Standard) oder volle Min-Max-Spanne
+    # Achendarstellung
     scale_all = st.checkbox("Alle Werte anzeigen", value=False)
     ret = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce").dropna()
     if ret.empty:
@@ -76,7 +76,7 @@ def governance_vs_rendite(df: pd.DataFrame):
         R = math.ceil(R / 5.0) * 5.0
         y_min, y_max = -R, R
 
-    # Regressionskennzahlen aus genau den gefilterten Daten
+    # Regressionskennzahlen aus gefilterten Daten
     x = pd.to_numeric(df_filtered["GovernancePillarScore"], errors="coerce")
     y = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
     mask = x.notna() & y.notna()
@@ -123,12 +123,12 @@ def governance_vs_rendite(df: pd.DataFrame):
     st.dataframe(stats)
 
     st.markdown(f"**Korrelationskoeffizient:** {r_value:.2f}  ·  Steigung: {slope:.3f} %-Pkt je Scorepunkt  ·  p = {p_value:.3g}")
-    if r_value > 0.2:
-        st.info("Höhere Governance-Scores gehen tendenziell mit besseren Renditen einher.")
-    elif r_value < -0.2:
-        st.info("Höhere Governance-Scores korrelieren tendenziell mit geringeren Renditen.")
+    if r_value > 0.2 and p_value < 0.05:
+        st.info("Es liegt ein signifikanter positiver Zusammenhang zwischen Governance-Score und Jahresrendite vor.")
+    elif r_value < -0.2 and p_value < 0.05:
+        st.info("Es liegt ein signifikanter negativer Zusammenhang zwischen Governance-Score und Jahresrendite vor.")
     else:
-        st.info("Kein klarer Zusammenhang zwischen Score und Rendite.")
+        st.info("Es ist kein statistisch signifikanter Zusammenhang zwischen Governance-Score und Jahresrendite erkennbar.")
 
     if len(df_filtered) >= 20:
         st.markdown("---")

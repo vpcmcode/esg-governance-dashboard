@@ -30,7 +30,7 @@ def calculate_log_returns(df: pd.DataFrame) -> pd.DataFrame:
         df.groupby("Company Name")["Close Price (USD)"]
           .transform(lambda x: np.log(x / x.shift(1)))
     )
-    # Annualisierung der Monatsrenditen je Kalenderjahr
+    # Annualisierung der Monatsrenditen
     annual_log = (
         df.groupby(["Company Name", "Year"])["MonthlyLogReturn"]
           .sum()
