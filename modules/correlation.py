@@ -12,7 +12,7 @@ def correlation_analysis_view(df: pd.DataFrame):
 
     st.subheader("Governance-Score vs. Aktienrendite (Korrelation pro Unternehmen)")
 
-    # Nur valide Einträge verwenden
+    # Datenbereinnigung, ausschluss von unvollständigen Daten
     cols_required = ["Company Name", "GovernancePillarScore", "AnnualReturnPct"]
     df = df.dropna(subset=cols_required)
     df["GovernancePillarScore"] = pd.to_numeric(df["GovernancePillarScore"], errors="coerce")

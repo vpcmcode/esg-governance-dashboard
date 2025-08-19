@@ -11,11 +11,11 @@ def governance_analysis_view(df: pd.DataFrame):
 
     st.subheader("Governance-Score vs. Rendite (Gruppiert nach Quintilen)")
 
-    # Auswahl der Jahre
+    # Jahresauswahl
     years = sorted(df["Year"].dropna().unique())
     selected_years = st.multiselect("Analysejahre", options=years, default=years)
 
-    # Daten nach gewählten Jahren filtern
+    # Datenfilterung
     df_filtered = df[df["Year"].isin(selected_years)].copy()
 
     # Prüfung auf notewendige Spalten
@@ -33,7 +33,7 @@ def governance_analysis_view(df: pd.DataFrame):
         st.warning("Keine verwertbaren Daten für die aktuelle Auswahl.")
         return
 
-    # Governance-Quintile berechnen
+    # Governance-Quintile
     try:
         df_filtered["Governance Group"] = pd.qcut(
             df_filtered["GovernancePillarScore"],
@@ -44,7 +44,7 @@ def governance_analysis_view(df: pd.DataFrame):
         st.warning("Nicht genügend Datenpunkte zur Bildung von Quintilen.")
         return
 
-    # Durchschnittliche Rendite je Gruppe berechnen
+    # Durchschnittsrendite je Gruppe
     stats = (
         df_filtered.groupby("Governance Group")["AnnualReturnPct"]
         .agg(["mean", "std", "count"])
@@ -74,6 +74,11 @@ def governance_analysis_view(df: pd.DataFrame):
             "Durchschnitt": "Ø Rendite (%)"
         },
         height=500
+    )
+
+    fig.update_layout(
+        xaxis=dict(tickfont=dict(size=14)),
+        yaxis=dict(tickfont=dict(size=14))
     )
 
     st.plotly_chart(fig, use_container_width=True)

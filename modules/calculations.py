@@ -22,7 +22,7 @@ def calculate_log_returns(df: pd.DataFrame) -> pd.DataFrame:
     df = df[df["Close Price (USD)"] > 0]
     after_clean = len(df)
 
-    # Sortierung innerhalb der Unternehmen nach Zeitverlauf
+    # Sortierung der Unternehmen nach Zeitverlauf
     df = df.sort_values(by=["Company Name", "Date"])
 
     # Monatsrenditen

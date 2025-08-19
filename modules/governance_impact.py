@@ -118,6 +118,7 @@ def governance_vs_rendite(df: pd.DataFrame):
         Mittelwert="mean", Median="median", StdAbw="std",
         Minimum="min", Maximum="max", N="count"
     ).round(2).to_frame().T
+    stats.index = ["Jahresrendite (%)"]
     st.markdown("### Statistische Kennzahlen (Rendite)")
     st.dataframe(stats)
 

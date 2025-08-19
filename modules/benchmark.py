@@ -12,30 +12,30 @@ def benchmark_governance(df: pd.DataFrame) -> None:
 
     st.header("Governance-Benchmarking nach Branche")
 
-    # Jahr auswählen
+    # Jahresauswahl
     jahre = df["Year"].dropna().unique()
     jahre.sort()
     selected_year = st.selectbox("Analysejahr auswählen", jahre)
 
-    # Daten auf das gewählte Jahr filtern
+    # Datenfilterung nach Jahr
     df_filtered = df[df["Year"] == selected_year].copy()
 
-    # Prüfen auf alle notwenidigen Spalten
+    # Prüfen auf notwenidige Spalten
     notwendige_spalten = ["Company Name", "Sektor", "GovernancePillarScore"]
     if not all(spalte in df_filtered.columns for spalte in notwendige_spalten):
         st.error("Es fehlen eine oder mehrere erforderliche Spalten im Datensatz.")
         return
 
-    # Median-Score je Branche berechnen
+    # Median-Score je Branche
     mediane = df_filtered.groupby("Sektor")["GovernancePillarScore"].median()
 
-    # Abweichung zum Median berechnen
+    # Abweichung zum Median
     df_filtered["GovernanceDeltaToMedian"] = df_filtered.apply(
         lambda row: row["GovernancePillarScore"] - mediane.get(row["Sektor"], np.nan),
         axis=1
     )
 
-    # Boxplot erstellen
+    # Boxplot
     fig = px.box(
         df_filtered,
         x="Sektor",
@@ -48,7 +48,7 @@ def benchmark_governance(df: pd.DataFrame) -> None:
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Tabelle mit Abweichungen anzeigen
+    # Tabelle mit Abweichungen
     with st.expander("Tabelle mit Score-Abweichungen einblenden"):
         st.dataframe(df_filtered[[
             "Company Name", "Sektor", "GovernancePillarScore", "GovernanceDeltaToMedian"

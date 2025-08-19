@@ -21,11 +21,10 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
     df["GovernancePillarScore"] = pd.to_numeric(df["GovernancePillarScore"], errors="coerce")
 
-    # Falls Sektor vorhanden, säubern
     if "Sector" in df.columns:
         df["Sector"] = df["Sector"].astype(str).str.strip()
 
-    # Check auf fehlende Werte in Kernspalten
+    # Check auf fehlende Werte
     df = df.dropna(subset=["Company Name", "GovernancePillarScore", "Close Price (USD)", "Year"])
 
     return df

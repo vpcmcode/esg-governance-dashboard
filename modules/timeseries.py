@@ -33,7 +33,7 @@ def governance_timeseries(df: pd.DataFrame):
             st.warning("Keine gültigen Daten gefunden.")
             return
 
-        # Renditeachse: robust ableiten, dann an reale Extrema anpassen und runden
+        # Anpassung der Renditeachse
         ret_all = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
         if ret_all.notna().any():
             q_low = float(ret_all.quantile(0.05))
