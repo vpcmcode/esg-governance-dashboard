@@ -14,7 +14,7 @@ with st.sidebar:
 
 # Datenvorbereitung
 from modules.filters import filter_data
-from modules.calculations import calculate_log_returns
+from modules.calculations import calculate_returns
 
 # Analysefunktionen
 from modules.governance_impact import governance_vs_rendite
@@ -26,7 +26,7 @@ from modules.timeseries import governance_timeseries
 # Daten laden und vorbereiten
 df_raw = pd.read_excel("data/esg_dataset.xlsx", engine="openpyxl")
 df_filtered = filter_data(df_raw)
-df = calculate_log_returns(df_filtered)
+df = calculate_returns(df_filtered)
 
 # Analyse-Tabs
 tabs = st.tabs([

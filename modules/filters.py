@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 def filter_data(df: pd.DataFrame) -> pd.DataFrame:
 

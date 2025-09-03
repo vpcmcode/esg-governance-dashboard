@@ -20,7 +20,7 @@ def benchmark_governance(df: pd.DataFrame) -> None:
     # Datenfilterung nach Jahr
     df_filtered = df[df["Year"] == selected_year].copy()
 
-    # Prüfen auf notwenidige Spalten
+    # Prüfen auf notwendige Spalten
     notwendige_spalten = ["Company Name", "Sektor", "GovernancePillarScore"]
     if not all(spalte in df_filtered.columns for spalte in notwendige_spalten):
         st.error("Es fehlen eine oder mehrere erforderliche Spalten im Datensatz.")

@@ -58,7 +58,7 @@ def governance_vs_rendite(df: pd.DataFrame):
         st.warning("Keine Daten für die aktuelle Auswahl.")
         return
 
-    # Achendarstellung
+    # Achsendarstellung
     scale_all = st.checkbox("Alle Werte anzeigen", value=False)
     ret = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce").dropna()
     if ret.empty:
