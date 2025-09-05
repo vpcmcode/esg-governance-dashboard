@@ -5,7 +5,8 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.Dat
     """
     AnnualReturnPct aus Monatsdaten (jeweils 01. des Monats):
     - Monatsrendite: pct_change je Unternehmen
-    - Jahresrendite: geometrische Verknüpfung; nur bei ausreichender Abdeckung
+    - Jahresrendite: geometrische Verknüpfung
+    - Abdeckung: Jahreswert nur bei vollständigem Jahr
     """
     df = df.copy()
     df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
@@ -15,39 +16,41 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.Dat
     if missing:
         raise KeyError(f"Fehlende Spalten: {', '.join(missing)}")
 
-    # Typisierung
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     df = df.dropna(subset=["Date"])
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
     df = df[df["Close Price (USD)"] > 0].sort_values(["Company Name", "Date"])
 
-    # Eindeutigkeit auf Monatsebene
+    # Eindeutigkeit je Monat sichern
     df["Month"] = df["Date"].dt.to_period("M")
     df = df.drop_duplicates(subset=["Company Name", "Month"], keep="first")
 
-    # Monatsrendite auf Basis der verfügbaren Daten
-    df["PeriodReturn"] = df.groupby("Company Name", sort=False)["Close Price (USD)"].pct_change()
+    # Monatsrenditen
+    df["PeriodReturn"] = (
+        df.groupby("Company Name", sort=False)["Close Price (USD)"].pct_change()
+    )
+    df["Year"] = df["Date"].dt.year
 
     # Jahresaggregation
-    df["Year"] = df["Date"].dt.year
-    counts = df.groupby(["Company Name", "Year"])["Month"].nunique()
-
-    def geo_annual(s: pd.Series, n_obs: int) -> float:
-        s = s.dropna()
-        if n_obs < min_months_per_year or s.size < min_months_per_year:
+    def _annual_from_group(g: pd.DataFrame) -> float:
+        n_months = g["Month"].nunique()
+        s = g["PeriodReturn"].dropna()
+        need_months = min_months_per_year
+        need_returns = max(1, min_months_per_year - 1)
+        if n_months < need_months or s.size < need_returns:
             return np.nan
         return (1.0 + s).prod() - 1.0
 
     annual = (
         df.groupby(["Company Name", "Year"], sort=False)
-          .apply(lambda g: geo_annual(g["PeriodReturn"], n_obs=counts.loc[(g.name[0], g.name[1])]))
+          .apply(_annual_from_group)
           .reset_index(name="AnnualReturn")
     )
     annual["AnnualReturnPct"] = annual["AnnualReturn"] * 100.0
 
-    # Merge in den Datensatz
-    out = df.merge(annual[["Company Name", "Year", "AnnualReturnPct"]],
-                   on=["Company Name", "Year"], how="left") \
-            .drop(columns=["PeriodReturn", "Month"])
+    out = df.merge(
+        annual[["Company Name", "Year", "AnnualReturnPct"]],
+        on=["Company Name", "Year"], how="left"
+    ).drop(columns=["PeriodReturn", "Month"])
 
     return out
