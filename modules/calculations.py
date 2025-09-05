@@ -1,52 +1,53 @@
 import pandas as pd
 import numpy as np
 
-def calculate_returns(df: pd.DataFrame) -> pd.DataFrame:
+def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.DataFrame:
     """
-    Berechnet annualisierte Normalrenditen in Prozent (AnnualReturnPct) aus monatlichen Prozentrenditen.
-    Jahresrendite je (Company Name, Year) Produkt der Monatsfaktoren minus 1.
+    AnnualReturnPct aus Monatsdaten (jeweils 01. des Monats):
+    - Monatsrendite: pct_change je Unternehmen
+    - Jahresrendite: geometrische Verknüpfung; nur bei ausreichender Abdeckung
     """
-
-    # Spaltennamen bereinigen
+    df = df.copy()
     df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
 
-    # Mindestanforderung prüfen
-    required_cols = ["Company Name", "Date", "Close Price (USD)"]
-    if not all(col in df.columns for col in required_cols):
-        missing = [c for c in required_cols if c not in df.columns]
+    req = ["Company Name", "Date", "Close Price (USD)"]
+    missing = [c for c in req if c not in df.columns]
+    if missing:
         raise KeyError(f"Fehlende Spalten: {', '.join(missing)}")
 
-    # Datum konvertieren und Jahr ableiten
+    # Typisierung
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-    df.dropna(subset=["Date"], inplace=True)
-    df["Year"] = df["Date"].dt.year
-
-    # Preise bereinigen
+    df = df.dropna(subset=["Date"])
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
-    df = df[df["Close Price (USD)"] > 0]
+    df = df[df["Close Price (USD)"] > 0].sort_values(["Company Name", "Date"])
 
-    # Sortierung
-    df = df.sort_values(by=["Company Name", "Date"])
+    # Eindeutigkeit auf Monatsebene
+    df["Month"] = df["Date"].dt.to_period("M")
+    df = df.drop_duplicates(subset=["Company Name", "Month"], keep="first")
 
-    # Monatsrenditen als einfache Prozentänderungen
-    df["MonthlyReturn"] = (
-        df.groupby("Company Name")["Close Price (USD)"]
-          .transform(lambda x: x.pct_change())
-    )
+    # Monatsrendite auf Basis der verfügbaren Daten
+    df["PeriodReturn"] = df.groupby("Company Name", sort=False)["Close Price (USD)"].pct_change()
 
-    # Jahresrendite als verkettetes Produkt der Monatsrenditen
+    # Jahresaggregation
+    df["Year"] = df["Date"].dt.year
+    counts = df.groupby(["Company Name", "Year"])["Month"].nunique()
+
+    def geo_annual(s: pd.Series, n_obs: int) -> float:
+        s = s.dropna()
+        if n_obs < min_months_per_year or s.size < min_months_per_year:
+            return np.nan
+        return (1.0 + s).prod() - 1.0
+
     annual = (
-        df.groupby(["Company Name", "Year"])["MonthlyReturn"]
-          .apply(lambda s: np.nan if s.dropna().shape[0] < 1 else (1 + s.dropna()).prod() - 1)
+        df.groupby(["Company Name", "Year"], sort=False)
+          .apply(lambda g: geo_annual(g["PeriodReturn"], n_obs=counts.loc[(g.name[0], g.name[1])]))
           .reset_index(name="AnnualReturn")
     )
-    annual["AnnualReturnPct"] = annual["AnnualReturn"] * 100  # Prozent
+    annual["AnnualReturnPct"] = annual["AnnualReturn"] * 100.0
 
-    # Jahreskennzahl zurück in Monatsdaten mergen
-    df = df.merge(
-        annual[["Company Name", "Year", "AnnualReturnPct"]],
-        on=["Company Name", "Year"],
-        how="left"
-    )
+    # Merge in den Datensatz
+    out = df.merge(annual[["Company Name", "Year", "AnnualReturnPct"]],
+                   on=["Company Name", "Year"], how="left") \
+            .drop(columns=["PeriodReturn", "Month"])
 
-    return df
+    return out
