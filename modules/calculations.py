@@ -4,7 +4,7 @@ import numpy as np
 def calculate_returns(df: pd.DataFrame) -> pd.DataFrame:
     """
     Berechnet annualisierte Normalrenditen in Prozent (AnnualReturnPct) aus monatlichen Prozentrenditen.
-    Jahresrendite je (Company Name, Year): Produkt der Monatsfaktoren minus 1.
+    Jahresrendite je (Company Name, Year) Produkt der Monatsfaktoren minus 1.
     """
 
     # Spaltennamen bereinigen
@@ -34,7 +34,7 @@ def calculate_returns(df: pd.DataFrame) -> pd.DataFrame:
           .transform(lambda x: x.pct_change())
     )
 
-    # Jahresrendite als verkettetes Produkt der Monatsrenditen; NaN, wenn keine Monatsrendite vorliegt
+    # Jahresrendite als verkettetes Produkt der Monatsrenditen
     annual = (
         df.groupby(["Company Name", "Year"])["MonthlyReturn"]
           .apply(lambda s: np.nan if s.dropna().shape[0] < 1 else (1 + s.dropna()).prod() - 1)
