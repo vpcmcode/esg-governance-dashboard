@@ -3,9 +3,9 @@ import numpy as np
 
 def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.DataFrame:
     """
-    AnnualReturnPct aus Monatsdaten (jeweils 01. des Monats):
-    - Monatsrendite: pct_change je Unternehmen
-    - Jahresrendite: geometrische Verknüpfung
+    AnnualReturnPct aus Monatsdaten (erster verfügbarer Kurs je Monat):
+    - Monatsrendite: pct_change je Unternehmen und Jahr
+    - Jahresrendite: geometrische Verknüpfung innerhalb des Kalenderjahres
     - Abdeckung: Jahreswert nur bei vollständigem Jahr
     """
     df = df.copy()
