@@ -25,13 +25,13 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.Dat
     df["Month"] = df["Date"].dt.to_period("M")
     df = df.drop_duplicates(subset=["Company Name", "Month"], keep="first")
 
-    # Monatsrenditen
-    df["PeriodReturn"] = (
-        df.groupby("Company Name", sort=False)["Close Price (USD)"].pct_change()
-    )
+    # Monatsrenditen je Kalenderjahr
     df["Year"] = df["Date"].dt.year
+    df["PeriodReturn"] = (
+        df.groupby(["Company Name", "Year"], sort=False)["Close Price (USD)"].pct_change()
+    )
 
-    # Jahresaggregation
+    # Jahresaggregation mit konsistentem Guard
     def _annual_from_group(g: pd.DataFrame) -> float:
         n_months = g["Month"].nunique()
         s = g["PeriodReturn"].dropna()
