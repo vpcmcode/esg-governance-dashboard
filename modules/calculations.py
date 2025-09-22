@@ -34,7 +34,7 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12, partial_p
         df.groupby(["Company Name", "Year"], sort=False)["Close Price (USD)"].pct_change()
     )
 
-    # Jahresaggregation mit konsistentem Guard
+    # Jahresaggregation
     def _annual_from_group(g: pd.DataFrame) -> float:
         # Monate und Renditen ermitteln
         months = g["Month"].sort_values().unique()
