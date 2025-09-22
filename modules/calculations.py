@@ -1,12 +1,15 @@
 import pandas as pd
 import numpy as np
 
-def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.DataFrame:
+def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12, partial_policy: str = "strict", min_months_for_partial: int = 6) -> pd.DataFrame:
     """
-    AnnualReturnPct aus Monatsdaten (erster verfügbarer Kurs je Monat):
-    - Monatsrendite: pct_change je Unternehmen und Jahr
+    AnnualReturnPct aus Monatsdaten (erster verfügbarer Kurs je Monat)
+    - Monatsrendite: pct_change je Unternehmen und Jahr (Reset an der Jahrgrenze)
     - Jahresrendite: geometrische Verknüpfung innerhalb des Kalenderjahres
-    - Abdeckung: Jahreswert nur bei vollständigem Jahr
+    - Abdeckung:
+        * "strict": nur volle Jahre (min_months_per_year Monate -> min_months_per_year-1 Returns)
+        * "ytd_partial": Teiljahre zulassen, kumuliert ohne Hochrechnung
+        * "annualize_by_span": Teiljahre zulassen, auf 12 Monate hochgerechnet
     """
     df = df.copy()
     df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
@@ -21,7 +24,7 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.Dat
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
     df = df[df["Close Price (USD)"] > 0].sort_values(["Company Name", "Date"])
 
-    # Eindeutigkeit je Monat sichern
+    # Eindeutigkeit je Monat
     df["Month"] = df["Date"].dt.to_period("M")
     df = df.drop_duplicates(subset=["Company Name", "Month"], keep="first")
 
@@ -33,13 +36,49 @@ def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12) -> pd.Dat
 
     # Jahresaggregation mit konsistentem Guard
     def _annual_from_group(g: pd.DataFrame) -> float:
-        n_months = g["Month"].nunique()
+        # Monate und Renditen ermitteln
+        months = g["Month"].sort_values().unique()
+        n_months = len(months)
         s = g["PeriodReturn"].dropna()
-        need_months = min_months_per_year
-        need_returns = max(1, min_months_per_year - 1)
-        if n_months < need_months or s.size < need_returns:
-            return np.nan
-        return (1.0 + s).prod() - 1.0
+        n_returns = s.size
+
+        # Vollständiges Jahr vorhanden?
+        full_year = (n_months >= min_months_per_year) and (n_returns >= max(1, min_months_per_year - 1))
+        total_factor = (1.0 + s).prod() if n_returns > 0 else np.nan
+
+        if partial_policy == "strict":
+            if not full_year:
+                return np.nan
+            return total_factor - 1.0
+
+        elif partial_policy == "ytd_partial":
+
+            if full_year:
+                return total_factor - 1.0
+            if n_months < max(2, min_months_for_partial) or n_returns < 1:
+                return np.nan
+            return total_factor - 1.0
+
+        elif partial_policy == "annualize_by_span":
+
+            if full_year:
+                return total_factor - 1.0
+            if n_months < max(2, min_months_for_partial) or n_returns < 1:
+                return np.nan
+            # Spannweite in Monaten zwischen erstem und letztem Monat
+            m0, m1 = months[0], months[-1]
+            try:
+                months_span = (m1.year - m0.year) * 12 + (m1.month - m0.month)
+            except AttributeError:
+                # Fallback für PeriodArray mit .ordinal
+                months_span = m1.ordinal - m0.ordinal
+            if months_span <= 0:
+                return np.nan
+            monthly_factor = total_factor ** (1.0 / months_span)
+            return monthly_factor ** 12 - 1.0
+
+        else:
+            raise ValueError("partial_policy must be 'strict', 'ytd_partial', or 'annualize_by_span'")
 
     annual = (
         df.groupby(["Company Name", "Year"], sort=False)

@@ -1,6 +1,14 @@
 import streamlit as st
 import pandas as pd
 
+# Gcachte Ladefunktion
+DATA_PATH = "data/esg_dataset.xlsx"
+
+@st.cache_data(show_spinner=False)
+def load_excel(path: str) -> pd.DataFrame:
+    """Einmaliges Laden und cachen der Datei."""
+    return pd.read_excel(path, engine="openpyxl")
+
 # Dashboard-Grundlayout
 st.set_page_config(
     page_title="ESG-Governance Dashboard",
@@ -23,8 +31,14 @@ from modules.correlation import correlation_analysis_view
 from modules.benchmark import benchmark_governance
 from modules.timeseries import governance_timeseries
 
-# Daten laden und vorbereiten
-df_raw = pd.read_excel("data/esg_dataset.xlsx", engine="openpyxl")
+# Fehlermeldung bei nicht vorhandenem Dataset
+try:
+    df_raw = load_excel(DATA_PATH)
+except FileNotFoundError:
+    st.error(f"Die Datenquelle '{DATA_PATH}' ist nicht verfügbar. Bitte stellen Sie sicher, dass die Datei im Repository vorhanden ist.")
+    st.stop()
+
+# Vorverarbeitung und Aggregation (unverändert zur ursprünglichen Logik)
 df_filtered = filter_data(df_raw)
 df = calculate_returns(df_filtered)
 
