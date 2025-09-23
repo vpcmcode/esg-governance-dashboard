@@ -45,7 +45,7 @@ def governance_analysis_view(df: pd.DataFrame):
 
     # Durchschnittsrendite je Gruppe
     stats = (
-        df_filtered.groupby("Governance Group")["AnnualReturnPct"]
+        df_filtered.groupby("Governance Group", observed=True)["AnnualReturnPct"]
         .agg(["mean", "std", "count"])
         .rename(columns={
             "mean": "Durchschnitt",
@@ -54,6 +54,7 @@ def governance_analysis_view(df: pd.DataFrame):
         })
         .reset_index()
     )
+    stats["Governance Group"] = stats["Governance Group"].astype(str)
 
     # Rundung
     stats["Durchschnitt"] = stats["Durchschnitt"].round(2)

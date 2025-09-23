@@ -21,7 +21,7 @@ def correlation_analysis_view(df: pd.DataFrame):
     # Korrelationen je Unternehmen
     result = []
     for name, group in df.groupby("Company Name"):
-        if len(group) >= 25:
+        if len(group) >= 30:
             r, p = pearsonr(group["GovernancePillarScore"], group["AnnualReturnPct"])
             result.append({
                 "Unternehmen": name,

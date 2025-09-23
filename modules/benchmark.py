@@ -6,8 +6,7 @@ import plotly.express as px
 def benchmark_governance(df: pd.DataFrame) -> None:
     """
     Zeigt, wie stark einzelne Unternehmen im Hinblick auf ihren GovernancePillarScore
-    vom Median ihrer Branche abweichen. Dafür wird ein Jahr ausgewählt, die Daten
-    gefiltert und die Abweichungen visualisiert.
+    vom Median ihrer Branche abweichen.
     """
 
     st.header("Governance-Benchmarking nach Branche")
