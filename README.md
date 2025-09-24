@@ -5,7 +5,7 @@ Dieses Projekt stellt ein interaktives Dashboard bereit, das den Zusammenhang zw
 ## Online-Version (empfohlen)
 
 Das Dashboard ist ohne lokale Installation hier erreichbar:  
-https://esg-governance-dashboard-qrmes9bveb5acu93hzduuv.streamlit.app/
+https://esg-governance-dashboard.streamlit.app/
 
 <details>
 <summary><strong>Optionale lokale Ausführung (für Reproduzierbarkeit)</strong></summary>
