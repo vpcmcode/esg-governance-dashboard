@@ -144,6 +144,53 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
         else:
             st.info("Kein statistisch signifikanter Zusammenhang (global).")
 
+    # Verteilungen
+    with st.expander("Histogramme einblenden", expanded=False):
+        col1, col2 = st.columns(2)
+
+        # Histogramm Jahresrendite
+        with col1:
+            ret_series = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce").dropna()
+            if not ret_series.empty:
+                fig_hist_ret = px.histogram(
+                    ret_series.to_frame(name="AnnualReturnPct"),
+                    x="AnnualReturnPct",
+                    nbins=40,
+                    title="Verteilung: Jahresrendite"
+                )
+                fig_hist_ret.update_layout(
+                    height=350,
+                    xaxis_title="Rendite (%)",
+                    yaxis_title="Häufigkeit",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)"
+                )
+                fig_hist_ret.update_xaxes(ticksuffix=" %")
+                st.plotly_chart(fig_hist_ret, use_container_width=True)
+            else:
+                st.info("Keine Daten für die Jahresrendite-Histogramm-Anzeige.")
+
+        # Histogramm Governance-Score
+        with col2:
+            gov_series = pd.to_numeric(df_filtered["GovernancePillarScore"], errors="coerce").dropna()
+            if not gov_series.empty:
+                fig_hist_gov = px.histogram(
+                    gov_series.to_frame(name="GovernancePillarScore"),
+                    x="GovernancePillarScore",
+                    nbins=40,
+                    title="Verteilung: Governance-Score"
+                )
+                fig_hist_gov.update_layout(
+                    height=350,
+                    xaxis_title="Governance-Score",
+                    yaxis_title="Häufigkeit",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)"
+                )
+                st.plotly_chart(fig_hist_gov, use_container_width=True)
+            else:
+                st.info("Keine Daten für die Governance-Score-Histogramm-Anzeige.")
+
     # Gruppenspezifische Kennzahlen
     if multi_trend and st.checkbox("Gruppenspezifische Regressionsstatistik anzeigen", value=False):
         group_col = color_col
