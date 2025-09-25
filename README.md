@@ -8,7 +8,7 @@ Das Dashboard ist ohne lokale Installation hier erreichbar:
 https://esg-governance-dashboard.streamlit.app/
 
 <details>
-<summary><strong>Optionale lokale Ausführung (für Reproduzierbarkeit)</strong></summary>
+<summary><strong>Optionale lokale Ausführung</strong></summary>
 
 Voraussetzungen: Python 3.11, Abhängigkeiten aus <code>requirements.txt</code>.  
 Die ESG-Datei muss unter <code>data/esg_dataset.xlsx</code> liegen.
@@ -42,7 +42,7 @@ Entwickelt mit Python 3.11. Zentrale Bibliotheken:
 - statsmodels
 - openpyxl
 
-Optionale Bibliotheken (im Projekt enthalten, aber nicht zwingend benötigt): matplotlib, xlsxwriter.  
+Optionale Bibliotheken: matplotlib, xlsxwriter.  
 Hinweis: Für Regressionslinien in Streudiagrammen verwendet Plotly `statsmodels`, für Korrelationsberechnungen (r, p) wird `scipy` genutzt.
 Es wird der Pearson‑Korrelationskoeffizient r mit `scipy.stats.pearsonr` berechnet.
 
