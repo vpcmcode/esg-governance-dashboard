@@ -1,6 +1,6 @@
 # ESG-Governance-Dashboard
 
-Dieses Projekt stellt ein interaktives Dashboard bereit, das den Zusammenhang zwischen ESG-Governance-Scores und der Aktienrendite von Unternehmen des S&P 500 analysiert. Es wurde im Rahmen einer Masterarbeit in Wirtschaftsinformatik nach dem Design-Science-Research-Ansatz entworfen und umgesetzt
+Dieses Projekt stellt ein interaktives Dashboard bereit, das den Zusammenhang zwischen ESG-Governance-Scores und der Aktienrendite von Unternehmen des S&P 500 analysiert. Es wurde im Rahmen einer Masterarbeit in Wirtschaftsinformatik nach dem Design-Science-Research-Ansatz entworfen und umgesetzt.
 
 ## Online-Version (empfohlen)
 
@@ -29,7 +29,7 @@ Das Dashboard öffnet sich im Browser (standardmäßig http://localhost:8501).
 
 ## Zielsetzung und Funktionsumfang
 
-Das Dashboard unterstützt explorative Analysen, um zu prüfen, ob und in welchem Umfang Governance-Scores mit der Aktienperformance zusammenhängen. Es bietet Filter nach Jahr, Sektor und Unternehmen sowie verschiedene Darstellungen, unter anderem Streudiagramme mit Regressionslinie, unternehmensspezifische Korrelationen mit r- und p-Wert, gruppierte Auswertungen nach Quintilen, Zeitreihen und Benchmarks.
+Das Dashboard unterstützt explorative Analysen, um zu prüfen, ob und in welchem Umfang Governance-Scores mit der Aktienperformance zusammenhängen. Es bietet Filter nach Jahr, Sektor und Unternehmen sowie verschiedene Darstellungen, unter anderem Streudiagramme mit Regressionslinie, unternehmensspezifische Korrelationen mit r- und p-Wert, gruppierte Auswertungen nach Quintilen, Zeitreihen und Benchmarks. Zusätzlich wird im Zeitreihenmodul je Unternehmen automatisch eine kurze Interpretation auf Basis des Pearson‑Korrelationskoeffizienten r und des p‑Werts ausgegeben.
 
 ## Technologischer Rahmen
 
@@ -38,11 +38,13 @@ Entwickelt mit Python 3.11. Zentrale Bibliotheken:
 - pandas
 - plotly
 - numpy
-- openpyxl
+- scipy
 - statsmodels
+- openpyxl
 
-Optionale Bibliotheken (im Projekt enthalten, aber nicht zwingend benötigt): scipy, matplotlib, xlsxwriter.  
-Alle Abhängigkeiten sind in `requirements.txt` hinterlegt.
+Optionale Bibliotheken (im Projekt enthalten, aber nicht zwingend benötigt): matplotlib, xlsxwriter.  
+Hinweis: Für Regressionslinien in Streudiagrammen verwendet Plotly `statsmodels`, für Korrelationsberechnungen (r, p) wird `scipy` genutzt.
+Es wird der Pearson‑Korrelationskoeffizient r mit `scipy.stats.pearsonr` berechnet.
 
 ## Datenformat
 

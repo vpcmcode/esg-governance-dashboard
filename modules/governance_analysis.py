@@ -23,7 +23,7 @@ def governance_analysis_view(df: pd.DataFrame):
         st.error("Mindestens eine der benötigten Spalten fehlt.")
         return
 
-    # Bereinigung: Nur valide numerische Werte verwenden
+    # Bereinigung auf valide numerische Werte
     df_filtered["GovernancePillarScore"] = pd.to_numeric(df_filtered["GovernancePillarScore"], errors="coerce")
     df_filtered["AnnualReturnPct"] = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
     df_filtered.dropna(subset=["GovernancePillarScore", "AnnualReturnPct"], inplace=True)

@@ -6,7 +6,7 @@ from scipy.stats import pearsonr
 def correlation_analysis_view(df: pd.DataFrame):
     """
     Analysefunktion zur unternehmensspezifischen Korrelation von ESG-Governance-Score
-    und jährlicher Aktienrendite. Ziel ist es, mögliche lineare Zusammenhänge zu identifizieren.
+    und jährlicher Aktienrendite.
     """
 
     st.subheader("Governance-Score vs. Aktienrendite (Korrelation pro Unternehmen)")

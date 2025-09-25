@@ -32,7 +32,7 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
         q01, q99 = df["AnnualReturnPct"].quantile([0.01, 0.99])
         df = df[df["AnnualReturnPct"].between(q01, q99)]
 
-    # Auswahl Sektoren
+    # Auswahl der Sektoren
     sektoren = sorted(df["Sector"].dropna().unique())
     selected_sektoren = st.multiselect("Sektoren auswählen", sektoren, default=sektoren)
     if not selected_sektoren:
@@ -97,7 +97,7 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
         title_slope = f"{slope:.3f}"
         title_p = f"{p_value:.3g}"
     else:
-        title_r = title_slope = title_p = "—"
+        title_r = title_slope = title_p = "-"
 
     fig = px.scatter(
         df_filtered,
@@ -135,7 +135,7 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
     st.markdown("### Statistische Kennzahlen")
     st.dataframe(stats)
 
-    st.markdown(f"**Globaler Korrelationskoeffizient:** {title_r}  ·  **Steigung:** {title_slope} %-Pkt je Scorepunkt  ·  **p:** {title_p}")
+    st.markdown(f"**Globaler Korrelationskoeffizient:** {title_r}  **Steigung:** {title_slope} %-Pkt je Scorepunkt  **p:** {title_p}")
     if isinstance(r_value, float) and isinstance(p_value, float) and (mask.sum() >= 2):
         if r_value > 0.2 and p_value < 0.05:
             st.info("Signifikanter positiver Zusammenhang (global).")

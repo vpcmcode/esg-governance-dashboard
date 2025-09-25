@@ -3,11 +3,11 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
+from scipy.stats import pearsonr
 
 def governance_timeseries(df: pd.DataFrame):
     """
-    Visualisiert die Entwicklung von Governance-Scores und Jahresrenditen im Zeitverlauf.
-    Ermöglicht wahlweise die Darstellung nach Einzelunternehmen oder aggregiert nach Sektor.
+    Visualisierung der Entwicklung von Governance-Scores und Jahresrenditen im Zeitverlauf.
     """
 
     st.subheader("Zeitliche Entwicklung von Governance-Score und Rendite")
@@ -104,6 +104,37 @@ def governance_timeseries(df: pd.DataFrame):
             height=600
         )
         st.plotly_chart(fig, use_container_width=True)
+
+        # Korrelation und kurze Interpretation
+        for firm in selected:
+            sub = df_filtered[df_filtered["Company Name"] == firm][["GovernancePillarScore", "AnnualReturnPct"]].copy()
+            sub = sub.apply(pd.to_numeric, errors="coerce").dropna()
+            n = len(sub)
+            if n >= 3:
+                r, p = pearsonr(sub["GovernancePillarScore"], sub["AnnualReturnPct"])
+                r_val = float(r)
+                p_val = float(p)
+                if p_val < 0.05 and r_val > 0:
+                    interp = "signifikanter positiver Zusammenhang"
+                elif p_val < 0.05 and r_val < 0:
+                    interp = "signifikanter negativer Zusammenhang"
+                else:
+                    interp = "kein statistisch signifikanter Zusammenhang"
+                st.info(f"{firm}: r = {r_val:.2f}, p = {p_val:.3f}, n = {n} – {interp}.")
+            else:
+                st.info(f"{firm}: zu wenige Beobachtungen für eine belastbare Korrelation (n = {n}).")
+        st.markdown(
+            """
+            <div style="font-size:1.0rem; line-height:1.6; margin-top:0.25rem;">
+            <strong>Legende</strong><br/>
+            <strong>r</strong> Pearson Korrelationskoeffizient von −1 bis +1. Gibt Richtung und Stärke eines linearen Zusammenhangs an.<br/>
+            <strong>p</strong> Signifikanzniveau der Korrelation. Werte unter 0,05 gelten als statistisch signifikant.<br/>
+            <strong>n</strong> Anzahl der berücksichtigten Jahresbeobachtungen.<br/>
+            Hinweis: Korrelation impliziert keine Kausalität.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     elif modus == "Sektortrends":
         sektoren = df["Sektor"].dropna().unique()

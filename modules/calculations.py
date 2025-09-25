@@ -3,13 +3,7 @@ import numpy as np
 
 def calculate_returns(df: pd.DataFrame, min_months_per_year: int = 12, partial_policy: str = "strict", min_months_for_partial: int = 6) -> pd.DataFrame:
     """
-    AnnualReturnPct aus Monatsdaten (erster verfügbarer Kurs je Monat)
-    - Monatsrendite: pct_change je Unternehmen und Jahr (Reset an der Jahrgrenze)
-    - Jahresrendite: geometrische Verknüpfung innerhalb des Kalenderjahres
-    - Abdeckung:
-        * "strict": nur volle Jahre (min_months_per_year Monate -> min_months_per_year-1 Returns)
-        * "ytd_partial": Teiljahre zulassen, kumuliert ohne Hochrechnung
-        * "annualize_by_span": Teiljahre zulassen, auf 12 Monate hochgerechnet
+    Berechnung der prozentualen Jahresrendite aus Monatsdaten.
     """
     df = df.copy()
     df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
