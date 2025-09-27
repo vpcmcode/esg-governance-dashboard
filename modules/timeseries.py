@@ -7,7 +7,7 @@ from scipy.stats import pearsonr
 
 def governance_timeseries(df: pd.DataFrame):
     """
-    Visualisierung der Entwicklung von Governance-Scores und Jahresrenditen im Zeitverlauf.
+    Zeigt die zeitliche Entwicklung von Governance-Scores und Jahresrenditen auf Unternehmens- und Sektorebene.
     """
 
     st.subheader("Zeitliche Entwicklung von Governance-Score und Rendite")
@@ -36,8 +36,8 @@ def governance_timeseries(df: pd.DataFrame):
         # Anpassung der Renditeachse
         ret_all = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
         if ret_all.notna().any():
-            q_low = float(ret_all.quantile(0.05))
-            q_high = float(ret_all.quantile(0.95))
+            q_low = float(ret_all.quantile(0.01))
+            q_high = float(ret_all.quantile(0.99))
             pad = max(5.0, 0.1 * (q_high - q_low))
 
             y2_min = float(min(q_low - pad, 0.0))
@@ -88,7 +88,7 @@ def governance_timeseries(df: pd.DataFrame):
         )
 
         fig.update_layout(
-            title="Zeitliche Entwicklung: Governance & Rendite (Einzelunternehmen)",
+            title="Zeitliche Entwicklung von Governance-Score und Aktienrendite auf Unternehmensebene",
             xaxis_title="Jahr",
             yaxis=dict(title="Governance-Score", side="left"),
             yaxis2=dict(
@@ -115,12 +115,12 @@ def governance_timeseries(df: pd.DataFrame):
                 r_val = float(r)
                 p_val = float(p)
                 if p_val < 0.05 and r_val > 0:
-                    interp = "signifikanter positiver Zusammenhang"
+                    interp = "Es konnte ein signifikanter positiver Zusammenhang zwischen Governance-Score und Aktienrendite festgestellt werden"
                 elif p_val < 0.05 and r_val < 0:
-                    interp = "signifikanter negativer Zusammenhang"
+                    interp = "Es konnte ein signifikanter negativer Zusammenhang zwischen Governance-Score und Aktienrendite festgestellt werden"
                 else:
-                    interp = "kein statistisch signifikanter Zusammenhang"
-                st.info(f"{firm}: r = {r_val:.2f}, p = {p_val:.3f}, n = {n} – {interp}.")
+                    interp = "Es konnte kein statistisch signifikanter Zusammenhang zwischen Governance-Score und Aktienrendite festgestellt werden"
+                st.info(f"{firm}: r = {r_val:.2f}, p = {p_val:.3f}, n = {n}  \n{interp}.")
             else:
                 st.info(f"{firm}: zu wenige Beobachtungen für eine belastbare Korrelation (n = {n}).")
         st.markdown(

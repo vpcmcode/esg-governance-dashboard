@@ -6,7 +6,7 @@ from scipy.stats import linregress
 
 def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
     """
-    Visualisiert den Zusammenhang von GovernancePillarScore und AnnualReturnPct.
+    Interaktive Analyse des Zusammenhangs zwischen GovernancePillarScore und AnnualReturnPct.
     """
 
     st.subheader("Governance-Score im Vergleich zur Rendite")
@@ -26,6 +26,7 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
     df["GovernancePillarScore"] = pd.to_numeric(df["GovernancePillarScore"], errors="coerce")
     df = df.dropna(subset=["AnnualReturnPct", "GovernancePillarScore"])
 
+    # Clipping für die Berechnungsbasis 1.–99. Perzentil
     if clip_mode == "hard":
         df = df[df["AnnualReturnPct"].between(-100, 100)]
     elif clip_mode == "quantile":
@@ -83,9 +84,9 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
     else:
         q05 = float(ret.quantile(0.05))
         q95 = float(ret.quantile(0.95))
-        R = max(10.0, 1.15 * max(abs(q05), abs(q95)))
-        R = math.ceil(R / 5.0) * 5.0
-        y_min, y_max = -R, R
+        r_axis = max(10.0, 1.15 * max(abs(q05), abs(q95)))
+        r_axis = math.ceil(r_axis / 5.0) * 5.0
+        y_min, y_max = -r_axis, r_axis
 
     # Regressionskennzahlen
     x = pd.to_numeric(df_filtered["GovernancePillarScore"], errors="coerce")
@@ -98,6 +99,8 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
         title_p = f"{p_value:.3g}"
     else:
         title_r = title_slope = title_p = "-"
+        r_value = None
+        p_value = None
 
     fig = px.scatter(
         df_filtered,
@@ -107,7 +110,7 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
         trendline="ols",
         hover_data=df_filtered.columns,
         opacity=0.6 if show_points else 0.0,
-        title=f"Governance-Score vs. Jahresrendite (global: r = {title_r}, Steigung {title_slope} %-Pkt/Scorepunkt, p = {title_p})"
+        title=f"Governance-Score im Vergleich zur Jahresrendite"
     )
     fig.add_hline(y=0, line_dash="dot", line_width=1)
 
@@ -138,11 +141,11 @@ def governance_vs_rendite(df: pd.DataFrame, clip_mode: str = "quantile"):
     st.markdown(f"**Globaler Korrelationskoeffizient:** {title_r}  **Steigung:** {title_slope} %-Pkt je Scorepunkt  **p:** {title_p}")
     if isinstance(r_value, float) and isinstance(p_value, float) and (mask.sum() >= 2):
         if r_value > 0.2 and p_value < 0.05:
-            st.info("Signifikanter positiver Zusammenhang (global).")
+            st.info("Es konnte ein signifikanter positiver Zusammenhang festgestellt werden.")
         elif r_value < -0.2 and p_value < 0.05:
-            st.info("Signifikanter negativer Zusammenhang (global).")
+            st.info("Es konnte ein signifikanter negativer Zusammenhang festgestellt werden.")
         else:
-            st.info("Kein statistisch signifikanter Zusammenhang (global).")
+            st.info("Es konnte kein statistisch signifikanter Zusammenhang festgestellt werden.")
 
     # Verteilungen
     with st.expander("Histogramme einblenden", expanded=False):

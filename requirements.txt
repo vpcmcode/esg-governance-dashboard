@@ -1,9 +1,7 @@
-streamlit
+numpy
+openpyxl
 pandas
 plotly
-openpyxl
-numpy
-matplotlib
-xlsxwriter
 scipy
 statsmodels
+streamlit

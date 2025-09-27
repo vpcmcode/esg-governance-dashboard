@@ -42,9 +42,6 @@ Entwickelt mit Python 3.11. Zentrale Bibliotheken:
 - statsmodels
 - openpyxl
 
-Optionale Bibliotheken: matplotlib, xlsxwriter.  
-Hinweis: Für Regressionslinien in Streudiagrammen verwendet Plotly `statsmodels`, für Korrelationsberechnungen (r, p) wird `scipy` genutzt.
-Es wird der Pearson‑Korrelationskoeffizient r mit `scipy.stats.pearsonr` berechnet.
 
 ## Datenformat
 

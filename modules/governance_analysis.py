@@ -4,74 +4,71 @@ import plotly.express as px
 
 def governance_analysis_view(df: pd.DataFrame):
     """
-    Vergleich der durchschnittlichen Jahresrenditen nach ESG-Governance-Score-Quintilen.
-    Ziel: Erkennen von Renditeunterschieden zwischen Gruppen mit verschiedenen Governance-Niveaus.
+    Analyse der Jahresrenditen nach Governance-Score-Quintilen.
     """
 
-    st.subheader("Governance-Score vs. Rendite (Gruppiert nach Quintilen)")
+    st.subheader("Governance-Score vs. Rendite (nach Quintilen)")
 
     # Jahresauswahl
     years = sorted(df["Year"].dropna().unique())
     selected_years = st.multiselect("Analysejahre", options=years, default=years)
 
-    # Datenfilterung
+    # Filterung nach Jahr
     df_filtered = df[df["Year"].isin(selected_years)].copy()
 
-    # Prüfung auf notewendige Spalten
-    cols_needed = ["GovernancePillarScore", "AnnualReturnPct", "Company Name"]
-    if not all(col in df_filtered.columns for col in cols_needed):
-        st.error("Mindestens eine der benötigten Spalten fehlt.")
+    # Pflichtspalten prüfen
+    required_cols = ["GovernancePillarScore", "AnnualReturnPct", "Company Name"]
+    if not all(col in df_filtered.columns for col in required_cols):
+        st.error("Eine oder mehrere benötigte Spalten fehlen.")
         return
 
-    # Bereinigung auf valide numerische Werte
+    # Umwandlung in numerische Werte
     df_filtered["GovernancePillarScore"] = pd.to_numeric(df_filtered["GovernancePillarScore"], errors="coerce")
     df_filtered["AnnualReturnPct"] = pd.to_numeric(df_filtered["AnnualReturnPct"], errors="coerce")
     df_filtered.dropna(subset=["GovernancePillarScore", "AnnualReturnPct"], inplace=True)
 
     if df_filtered.empty:
-        st.warning("Keine verwertbaren Daten für die aktuelle Auswahl.")
+        st.warning("Keine auswertbaren Daten für die gewählten Jahre.")
         return
 
-    # Governance-Quintile
+    # Einteilung in Quintile
     try:
-        df_filtered["Governance Group"] = pd.qcut(
+        df_filtered["Governance-Gruppe"] = pd.qcut(
             df_filtered["GovernancePillarScore"],
             q=5,
             labels=["Sehr niedrig", "Niedrig", "Mittel", "Hoch", "Sehr hoch"]
         )
     except ValueError:
-        st.warning("Nicht genügend Datenpunkte zur Bildung von Quintilen.")
+        st.warning("Zu wenige Datenpunkte zur Bildung von Quintilen.")
         return
 
-    # Durchschnittsrendite je Gruppe
-    stats = (
-        df_filtered.groupby("Governance Group", observed=True)["AnnualReturnPct"]
+    # Berechnung gruppierter Statistiken
+    summary = (
+        df_filtered.groupby("Governance-Gruppe", observed=True)["AnnualReturnPct"]
         .agg(["mean", "std", "count"])
         .rename(columns={
-            "mean": "Durchschnitt",
+            "mean": "Ø Rendite",
             "std": "Standardabweichung",
-            "count": "Unternehmensanzahl"
+            "count": "Anzahl Unternehmen"
         })
         .reset_index()
     )
-    stats["Governance Group"] = stats["Governance Group"].astype(str)
+    summary["Governance-Gruppe"] = summary["Governance-Gruppe"].astype(str)
 
-    # Rundung
-    stats["Durchschnitt"] = stats["Durchschnitt"].round(2)
-    stats["Standardabweichung"] = stats["Standardabweichung"].round(4)
+    summary["Ø Rendite"] = summary["Ø Rendite"].round(2)
+    summary["Standardabweichung"] = summary["Standardabweichung"].round(4)
 
     # Visualisierung
-    title = f"Durchschnittliche Renditen pro Governance-Gruppe ({min(selected_years)}–{max(selected_years)})"
     fig = px.bar(
-        stats,
-        x="Governance Group",
-        y="Durchschnitt",
-        text="Durchschnitt",
-        color="Governance Group",
-        title=title,
+        summary,
+        x="Governance-Gruppe",
+        y="Ø Rendite",
+        text="Ø Rendite",
+        color="Governance-Gruppe",
+        title="Durchschnittliche Rendite nach Governance-Quintilen",
         labels={
-            "Governance Group": "Governance-Score (Quintil)",
-            "Durchschnitt": "Ø Rendite (%)"
+            "Governance-Gruppe": "Governance-Score (Quintil)",
+            "Ø Rendite": "Ø Jahresrendite (%)"
         },
         height=500
     )
@@ -83,6 +80,6 @@ def governance_analysis_view(df: pd.DataFrame):
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Tabelle anzeigen
+    # Tabelle
     st.markdown("### Statistische Kennzahlen je Gruppe")
-    st.dataframe(stats.set_index("Governance Group"))
+    st.dataframe(summary.set_index("Governance-Gruppe"), use_container_width=True)
