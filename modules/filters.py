@@ -14,12 +14,12 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     if missing_columns:
         raise ValueError(f"Fehlende Spalten im Datensatz: {', '.join(missing_columns)}")
 
-    # Konvertiert das Datumsfeld und filtert unbrauchbare Zeilen
+    # Datumsfeld konvertieren
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     df = df[df["Date"].notna()]
     df["Year"] = df["Date"].dt.year
 
-    # Wandelt numerische Felder explizit um
+    # Numerische Felder umwandeln
     df["Close Price (USD)"] = pd.to_numeric(df["Close Price (USD)"], errors="coerce")
     df["GovernancePillarScore"] = pd.to_numeric(df["GovernancePillarScore"], errors="coerce")
 
@@ -27,7 +27,7 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     if "Sector" in df.columns:
         df["Sector"] = df["Sector"].astype(str).str.strip()
 
-    # Entfernt Zeilen mit fehlenden Kerndaten
+    # Zeilen mit fehlenden Kerndaten entfernen
     df = df[
         df["Company Name"].notna() &
         df["GovernancePillarScore"].notna() &
